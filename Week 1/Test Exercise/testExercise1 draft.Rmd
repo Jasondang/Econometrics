@@ -1,0 +1,41 @@
+---
+title: "testExercise1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+Data is loaded in
+
+```{r}
+travelData <- read.table("TestExer1-holiday expenditures-round2.txt", header=TRUE, sep="\t")
+```
+
+## Including Plots
+
+Let expenditures equal y and age equal x
+
+```{r pressure, echo=FALSE}
+b <- sum(((travelData$Expenditures-101,1154)*(travelData$Age-39.35))/sum((travelData$Age-39.35)^2))
+
+a <- 101.1154-(39.35*-0.334)
+
+model <- lm(travelData$Expenditures ~ travelData$Age)
+
+travelData$predictedValue <- a +b*(travelData$Age)
+travelData$residuals <- travelData$Expenditures-travelData$predictedValue
+
+modelResiduals <- residuals(lm(travelData$Expenditures ~ travelData$Age))
+
+se <- sqrt((1/24)*sum((modelResiduals)^2))
+
+se_b <- sqrt((se^2)/sum((travelData$Age-mean(travelData$Age))^2))
+
+t = b/se_b
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

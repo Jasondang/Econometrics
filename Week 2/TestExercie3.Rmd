@@ -1,0 +1,24 @@
+---
+title: "TestExercise2"
+author: "Jason"
+date: "17/12/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This exercise considers an example of data that do not satisfy all the standard assumptions of simple regression.
+In the considered case, assumption A6 that the coefficients α and β are the same for all observations is violated.
+The dataset contains survey outcomes of a travel agency that wishes to improve recommendation strategies for its
+clients. The dataset contains 26 observations on age and average daily expenditures during holidays.
+
+### Loading in the dataset
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+

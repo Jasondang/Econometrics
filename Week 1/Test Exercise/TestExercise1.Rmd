@@ -1,0 +1,322 @@
+---
+title: 'Econometrics: Test Exercise 1'
+author: "Jason"
+date: "11/10/2017"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This exercise considers an example of data that do not satisfy all the standard assumptions of simple regression.
+In the considered case, assumption A6 that the coefficients α and β are the same for all observations is violated.
+The dataset contains survey outcomes of a travel agency that wishes to improve recommendation strategies for its
+clients. The dataset contains 26 observations on age and average daily expenditures during holidays.
+
+### Loading in the dataset
+```{r}
+travelData <- read.table("TestExer1-holiday expenditures-round2.txt", header=TRUE, sep="\t")
+
+head(travelData)
+```
+
+### Question 1: 
+**Use all data to estimate the coefficients a and b in a simple regression model, where expenditures is the dependent variable and age is the explanatory factor. Also compute the standard error and the t-value of b.**
+
+Using the following equation:  $y = a + bx + (\epsilon)$
+where:
+
+* $y$ = Expenditures
+* $x$ = Age
+
+$$b = \frac{\sum\limits_{i=1}^{26} \left(y_{i} - \bar{y}\right)\left(x_{i} - \bar{x}\right) } {\sum\limits_{i=1}^{26} (x_{i} - \bar{x})^2} $$
+$$a = \bar{y} -b\bar{x}  $$
+
+```{r}
+x_bar = mean(travelData$Age)
+y_bar = mean(travelData$Expenditures)
+x_bar
+y_bar
+```
+
+
+$$\bar{x} = 39.34615 $$
+$$\bar{y}= 101.1154 $$
+
+Therefore using these values of $\bar{x}$ and $\bar{y}$ we can now calculate the values of a and b. 
+
+```{r}
+x = travelData$Age
+y = travelData$Expenditures
+
+b = sum((y-y_bar)*(x-x_bar))/(sum((x-x_bar)^2))
+a = y_bar-(b*x_bar)
+
+b
+a
+```
+
+Therefore 
+
+$$b = -0.3335961$$
+$$a = 114.2411$$
+
+To calculate the standard error of b, we first need to calculate the standard error of the regression
+
+$$s = \sqrt{\frac{1}{n-2} \sum\limits_{i=1}^{26} e_{i}^2}$$
+
+Where `e` is the residuals
+
+```{r}
+model <- lm(travelData$Expenditures ~ travelData$Age)
+
+residual <- residuals(model)
+
+s <- sqrt((1/(26-2))*sum(residual^2))
+
+s
+```
+
+$$ s = 5.073322 $$
+
+After calculating the standard error, we will then calculate the standard error of b using the following formula
+
+$$s_{b} = \sqrt{\frac{s^2}{\sum\limits_{i=1}^{26} (x_{i}-\bar{x})}} $$
+
+```{r}
+s_b = sqrt((s^2)/sum((x-x_bar)^2))
+
+s_b
+```
+
+
+$$s_{b} = 0.09536918 $$
+
+To calculate the t value of b, we use the following formula: 
+
+$$t_{b} = \frac{b}{s_{b}} $$
+
+```{r}
+t_b = b/s_b
+t_b
+```
+
+$$t_{b} = -3.497944 $$
+Our results can be confirmed with the following summary function of the linear model: 
+
+```{r}
+summary(model)
+```
+
+Summary:
+
+$$b = -0.3335961$$
+$$a = 114.2411$$
+$$s_{b} = 0.09536918 $$
+$$t_{b} = -3.497944 $$
+
+
+### Question 2: 
+**Make the scatter diagram of expenditures against age and add the regression line y = a + bx of part (a) in this diagram. What conclusion do you draw from this diagram?**
+
+```{r}
+plot(x, y, xlab="Age", ylab="Expenditures")
+abline(model)
+```
+
+From the scatter diagram above, it is very noticable that for lower ages, expenditures are much higher compared to values of age that are higher. The regression line also shows this relantionship. 
+
+
+### Question 3: 
+**It seems there are two sets of observations in the scatter diagram, one for clients aged 40 or higher and another for clients aged below 40. Divide the sample into these two clusters, and for each cluster estimate the coefficients a and b and determine the standard error and t-value of b.**
+
+We will first split the data into the two groups
+
+```{r}
+travelDataYoung <- subset(travelData, Age < 40)
+nrow(travelDataYoung)
+travelDataOld <- subset(travelData, Age >= 40)
+```
+
+Starting with the data of people age less the 40 and using the same process as question 1, we calculate will first calculate the mean of age and expenditures in the data
+
+```{r}
+x_bar = mean(travelDataYoung$Age)
+y_bar = mean(travelDataYoung$Expenditures)
+x_bar
+y_bar
+```
+
+
+$$\bar{x} = 31.07692 $$
+$$\bar{y}= 106.3846 $$
+
+Using these values of $\bar{x}$ and $\bar{y}$ we can now calculate the values of a and b. 
+
+```{r}
+x = travelDataYoung$Age
+y = travelDataYoung$Expenditures
+
+b = sum((y-y_bar)*(x-x_bar))/(sum((x-x_bar)^2))
+a = y_bar-(b*x_bar)
+
+b
+a
+```
+
+Therefore 
+
+$$b = 0.1979713$$
+$$a = 100.2323$$
+
+Calculating the standard error of the regression
+
+```{r}
+model <- lm(travelDataYoung$Expenditures ~ travelDataYoung$Age)
+
+residual <- residuals(model)
+
+s <- sqrt((1/(13-2))*sum(residual^2))
+
+s
+```
+
+$$ s = 0.7806225 $$
+
+After calculating the standard error, we will then calculate the standard error of b 
+
+```{r}
+s_b = sqrt((s^2)/sum((x-x_bar)^2))
+
+s_b
+```
+
+
+$$s_{b} = 0.04438367 $$
+
+Now we calculate the t value of b
+
+```{r}
+t_b = b/s_b
+t_b
+```
+
+$$t_{b} = 4.460453 $$
+Our results can be confirmed with the following summary function of the linear model: 
+
+```{r}
+summary(model)
+```
+
+```{r}
+plot(x, y, xlab="Age", ylab="Expenditures")
+abline(model)
+```
+
+
+Moving to the data where age is greater than 40, we calculate will first calculate the mean of age and expenditures in the data
+
+
+```{r}
+x_bar = mean(travelDataOld$Age)
+y_bar = mean(travelDataOld$Expenditures)
+x_bar
+y_bar
+```
+
+
+$$\bar{x} = 31.07692 $$
+$$\bar{y}= 106.3846 $$
+
+Using these values of $\bar{x}$ and $\bar{y}$ we can now calculate the values of a and b. 
+
+```{r}
+x = travelDataOld$Age
+y = travelDataOld$Expenditures
+
+b = sum((y-y_bar)*(x-x_bar))/(sum((x-x_bar)^2))
+a = y_bar-(b*x_bar)
+
+b
+a
+```
+
+Therefore 
+
+$$b = 0.1464708$$
+$$a = 88.87189$$
+
+Calculating the standard error of the regression
+
+```{r}
+model <- lm(travelDataOld$Expenditures ~ travelDataOld$Age)
+
+residual <- residuals(model)
+
+s <- sqrt((1/(13-2))*sum(residual^2))
+
+s
+```
+
+$$ s = 3.832903 $$
+
+After calculating the standard error, we will then calculate the standard error of b 
+
+```{r}
+s_b = sqrt((s^2)/sum((x-x_bar)^2))
+
+s_b
+```
+
+
+$$s_{b} = 0.1973844 $$
+
+Now we calculate the t value of b
+
+```{r}
+t_b = b/s_b
+t_b
+```
+
+$$t_{b} = 0.7420587 $$
+Our results can be confirmed with the following summary function of the linear model: 
+
+```{r}
+summary(model)
+```
+
+```{r}
+plot(x, y, xlab="Age", ylab="Expenditures")
+abline(model)
+```
+
+
+Summary:
+
+With the young age data:
+$$b = 0.1979713$$
+$$a = 100.2323$$
+$$s_{b} = 0.04438367 $$
+$$t_{b} = 4.460453 $$
+
+With the old age data:
+
+$$b = 0.1464708$$
+$$a = 88.87189$$
+$$s_{b} = 0.1973844$$
+$$t_{b} = 0.7420587 $$
+
+### Question 4: 
+**Discuss and explain the main differences between the outcomes in parts (a) and (c). Describe in words what you have learned from these results.**
+
+The regression slope is now positive for part (c) unlike in part (a) where it was negative. This aligns with the data in the scatter plot from part (b) if the data was seperated. The coefficients in part (c) has also decreased as well.
+
+The standard error of `b` decreased and the t-value of `b` increased for the young age data in part (c) compared to part(a) which indicates that the regression model for the seperate datasets was more accurate than the regression model when the dataset was combined. 
+
+
