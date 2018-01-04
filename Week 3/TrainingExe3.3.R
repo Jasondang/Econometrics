@@ -20,6 +20,10 @@ indexData$DummyVar[indexData$Year >=1980] = 1
 indexData$DummyVar[indexData$Year <1980] = 0
 indexData <- indexData %>%
   mutate(Dummy = c(DummyVar*BookMarket))
+model_2 <- lm(Log_Diff ~ BookMarket + BookMarket * DummyVar, data = indexData)
+summary(model_2)
+
+
 model_2 <- lm(Log_Diff ~ BookMarket + Dummy, data = indexData)
 summary(model_2)
 
