@@ -1,0 +1,54 @@
+---
+title: "TestExercise3"
+author: "Jason"
+date: "10/01/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
+library(dplyr)
+setwd("~/Documents/2017/Coursera/Econometrics/Week 3")
+```
+
+## Introduction
+
+This test exercise is of an applied nature and uses data that are available in the data file TestExer3. We consider the so-called Taylor rule for setting the (nominal) interest rate. This model describes the level of the nominal interest rate that the central bank sets as a function of equilibrium real interest rate and inflation, and considers the current level of inflation and production. Taylor (1993) considers the model:
+
+$$i_{t} = r^* + \pi_{t} + 0.5(\pi_{t} - \pi^*) + 0.5g_{t} $$
+
+with $i_{t}$ the Federal funds target interest rate at time t, $r^*$ the equilibrium real federal funds rate, $\pi_{t}$ a measure of inflation, $\pi^*$ the target inflation rate and $g_{t}$ the output gap (how much actual output deviates from potential output). We simplify the Taylor rule in two manners. First, we avoid determining $r^*$ and $\pi^*$ and simply add an intercept to the model to capture these two variables (and any other deviations in the means). Second, we consider production yy rather than the output gap. In this form the Taylor rule is 
+
+$$i_{t} = β_{1} + β_{2}\pi_{t} + β_{3}y_{t} + ε_{t}. (1)$$
+
+Monthly data are available for the USA over the period 1960 through 2014 for the following variables:
+
+* INTRATE: Federal funds interest rate
+* INFL: Inflation
+* PROD: Production
+* UNEMPL: Unemployment
+* COMMPRI: Commodity prices
+* PCE: Personal consumption expenditure
+* PERSINC: Personal income
+* HOUST: Housing starts
+
+### Loading in the dataset
+
+```{r}
+federalRatesData <- read.table("TestExercise 3.txt", header=TRUE)
+head(federalRatesData)
+```
+
+### Question 1
+```{r}
+summary(lm(INTRATE ~ INFL + PROD + UNEMPL + COMMPRI + PCE + PERSINC + HOUST, data = federalRatesData))
+```
+
+Remove UNEMPL as it has the highest p-value
+
+```{r}
+summary(lm(INTRATE ~ INFL + PROD + COMMPRI + PCE + PERSINC + HOUST, data = federalRatesData))
+```
+
+Remove PROD as it has the highest p-value in the model
