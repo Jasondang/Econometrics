@@ -141,27 +141,263 @@ $(document).ready(function () {
 <li>PERSINC: Personal income</li>
 <li>HOUST: Housing starts</li>
 </ul>
-<div id="loading-in-the-dataset" class="section level3">
-<h3>Loading in the dataset</h3>
-<pre class="r"><code>federalRatesData &lt;- read.table(&quot;TestExercise 3.txt&quot;, header=TRUE)
-head(federalRatesData)</code></pre>
-<pre><code>##      OBS INTRATE    INFL     PROD  UNEMPL   COMMPRI     PCE PERSINC
-## 1 1960:1    3.99 1.24095 10.03653 3.41845   7.95262 5.70962 1.68419
-## 2 1960:2    3.97 1.41379  6.96248 3.46575  -8.55856 5.06452 1.33094
-## 3 1960:3    3.84 1.51881  4.49681 2.71993 -16.83599 5.55733 0.89195
-## 4 1960:4    3.92 1.93237  1.50624 2.79820  -5.03145 7.77351 0.67636
-## 5 1960:5    3.85 1.82507 -0.11398 1.72552 -12.44240 4.39179 0.33667
-## 6 1960:6    3.32 1.71762 -1.48262 1.24443 -24.31655 3.73509 0.06719
-##       HOUST
-## 1 -11.88896
-## 2  -9.83803
-## 3 -31.54321
-## 4 -18.93082
-## 5 -15.15354
-## 6 -17.03260</code></pre>
-</div>
 <div id="question-1" class="section level3">
 <h3>Question 1</h3>
+<p><strong>Use general-to-specific to come to a model. Start by regressing the federal funds rate on the other 7 variables and eliminate 1 variable at a time.</strong></p>
+<p>The table below outlines the execution results of the models, with each model removing a variable based on their p-value. The variable with the highest p value is removed, and the model is run with the remaining variables. The removal of variables stops when the p-values of all the remaining variables are above 0.05.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Model 1 p-value</th>
+<th>Model 2 p-value</th>
+<th>Model 3 p-value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Intercept</td>
+<td>0.36701</td>
+<td>0.21827</td>
+<td>0.29764</td>
+</tr>
+<tr class="even">
+<td>INFL</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>PROD</td>
+<td>0.14833</td>
+<td>0.32319</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>UNEMPL</td>
+<td>0.28992</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>COMMPRI</td>
+<td>0.06382</td>
+<td>0.02132</td>
+<td>0.00464</td>
+</tr>
+<tr class="even">
+<td>PCE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>PERSINC</td>
+<td>0.00005</td>
+<td>0.00004</td>
+<td>0.00006</td>
+</tr>
+<tr class="even">
+<td>HOUST</td>
+<td>0.00004</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p>As it can be seen above the final model chosen using the general to specific methodology is:</p>
+<p><span class="math display">\[INTRATE = 0.71753*INFL -0.00750*COMMPRI\]</span> <span class="math display">\[+ 0.34053*PCE + 0.24024*PERSINC\]</span> <span class="math display">\[-0.02053*HOUST -0.24012\]</span></p>
+</div>
+<div id="question-2" class="section level3">
+<h3>Question 2</h3>
+<p><strong>Use specific-to-general to come to a model. Start by regressing the federal funds rate on only a constant and add 1 variable at a time. Is the model the same as in (a)?</strong></p>
+<p>The table below lists the p-value and t-statistics of each model simulation that was run. Using the specific-to-general methodology one variable is chosen at a time based on the highest t-statistic until the p-value of all remaining variables exceed 0.05.</p>
+<table>
+<colgroup>
+<col width="14%"></col>
+<col width="14%"></col>
+<col width="14%"></col>
+<col width="16%"></col>
+<col width="16%"></col>
+<col width="16%"></col>
+<col width="6%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Model 1</th>
+<th>Model 2</th>
+<th>Model 3</th>
+<th>Model 4</th>
+<th>Model 5</th>
+<th>Model 6</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>INFL<br>t-value<br>p-value</td>
+<td><br>28.92451<br>0</td>
+<td><br> <em>Variable Chosen</em></td>
+<td><br> <em>Variable Chosen</em></td>
+<td><br> <em>Variable Chosen</em></td>
+<td><br> <em>Variable Chosen</em></td>
+<td><br> <em>Variable Chosen</em></td>
+</tr>
+<tr class="even">
+<td>PROD<br>t-value<br>p-value</td>
+<td><br>-0.53668<br>0.59167</td>
+<td><br>4.8049<br>0</td>
+<td><br>0.29571<br>0.76755</td>
+<td><br>-1.50551<br>0.13268</td>
+<td><br>-1.92312<br>0.0549</td>
+<td><br>-0.98868<br>0.32319</td>
+</tr>
+<tr class="odd">
+<td>UNEMPL<br>t-value<br>p-value</td>
+<td><br>6.44717<br>0</td>
+<td><br>7.23493<br>0</td>
+<td><br>2.63784<br>0.00854</td>
+<td><br>1.18445<br>0.23666</td>
+<td><br>-0.23937<br>0.81089</td>
+<td><br>-0.07174<br>0.94283</td>
+</tr>
+<tr class="even">
+<td>COMMPRI<br>t-value<br>p-value</td>
+<td><br>-2.7499<br>0.00613</td>
+<td><br>-1.65396<br>0.09861</td>
+<td><br>-2.25663<br>0.02436</td>
+<td><br>-3.1734<br>0.00158</td>
+<td><br>-2.8411<br>0.00464</td>
+<td><br> <em>Variable Chosen</em></td>
+</tr>
+<tr class="odd">
+<td>PCE<br>t-value<br>p-value</td>
+<td><br>21.83197<br>0</td>
+<td><br>8.58994<br>0</td>
+<td><br>3.41205<br>0.00068</td>
+<td><br> <em>Variable Chosen</em></td>
+<td><br> <em>Variable Chosen</em></td>
+<td><br> <em>Variable Chosen</em></td>
+</tr>
+<tr class="even">
+<td>PERSINC<br>t-value<br>p-value</td>
+<td><br>1.4513<br>0.14717</td>
+<td><br>9.47807<br>0</td>
+<td><br> <em>Variable Chosen</em></td>
+<td><br> <em>Variable Chosen</em></td>
+<td><br> <em>Variable Chosen</em></td>
+<td><br> <em>Variable Chosen</em></td>
+</tr>
+<tr class="odd">
+<td>HOUST<br>t-value<br>p-value</td>
+<td><br>-5.10585<br>0</td>
+<td><br>-0.91133<br>0.36246</td>
+<td><br>-2.73343<br>0.00644</td>
+<td><br>-4.89325<br>0</td>
+<td><br> <em>Variable Chosen</em></td>
+<td><br> <em>Variable Chosen</em></td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + COMMPRI, data = federalRatesData))$coefficients[,1]</code></pre>
+<pre><code>## (Intercept)        INFL     PERSINC         PCE       HOUST     COMMPRI 
+##  -0.2401188   0.7175265   0.2402420   0.3405254  -0.0205297  -0.0075007</code></pre>
+<p>As it can be seen above, the model is the same as question (a).</p>
+</div>
+<div id="question-3" class="section level3">
+<h3>Question 3</h3>
+<p><strong>Compare your model from (a) and the Taylor rule of equation (1). Consider <span class="math inline">\(R^2\)</span>, AIC and BIC. Which of the models do you prefer?</strong></p>
+<p>The Taylor model only considers two variables, <span class="math display">\[INFL\]</span> and <span class="math display">\[PROD\]</span>.</p>
+<pre class="r"><code>taylorModel &lt;- lm(INTRATE ~ INFL + PROD, data = federalRatesData)
+summary(taylorModel)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = INTRATE ~ INFL + PROD, data = federalRatesData)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -5.159 -1.676  0.014  1.373  7.920 
+## 
+## Coefficients:
+##             Estimate Std. Error t value             Pr(&gt;|t|)    
+## (Intercept)   1.2489     0.1762    7.09      0.0000000000035 ***
+## INFL          0.9750     0.0327   29.78 &lt; 0.0000000000000002 ***
+## PROD          0.0947     0.0197    4.80      0.0000019200327 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 2.36 on 657 degrees of freedom
+## Multiple R-squared:  0.575,  Adjusted R-squared:  0.573 
+## F-statistic:  444 on 2 and 657 DF,  p-value: &lt;0.0000000000000002</code></pre>
+<pre class="r"><code>s = sqrt(deviance(taylorModel)/df.residual(taylorModel))
+
+k = 2
+
+n = nrow(federalRatesData)
+
+aic = log(s^2) + ((2*k)/n)
+aic</code></pre>
+<pre><code>## [1] 1.7267</code></pre>
+<pre class="r"><code>bic = log(s^2) + (k*log(n))/n
+bic</code></pre>
+<pre><code>## [1] 1.7403</code></pre>
+<pre class="r"><code>taylorRSquared &lt;- summary(taylorModel)$r.squared</code></pre>
+</div>
+<div id="question-4" class="section level3">
+<h3>Question 4</h3>
+<p>Test the Taylor rule of equation (1) using the RESET test, Chow break and forecast test (with in both tests as break date January 1980) and a Jarque-Bera test. What do you conclude?</p>
+<pre class="r"><code>resettest(taylorModel, power = 2, type = &quot;fitted&quot;, data = federalRatesData)</code></pre>
+<pre><code>## 
+##  RESET test
+## 
+## data:  taylorModel
+## RESET = 2.54, df1 = 1, df2 = 656, p-value = 0.11</code></pre>
+<div id="chow-break-test" class="section level4">
+<h4>Chow Break Test</h4>
+<pre class="r"><code>grp &lt;- federalRatesData[federalRatesData$Year &lt; 1980, ]
+x1 &lt;- grp[, c(&quot;INFL&quot;, &quot;PROD&quot;)]; 
+y1 &lt;- data.frame( INTRATE = grp[&quot;INTRATE&quot;] )
+grp &lt;- federalRatesData[federalRatesData$Year &gt;= 1980, ]
+x2 &lt;- grp[, c(&quot;INFL&quot;, &quot;PROD&quot;)]; y2 &lt;- data.frame( INTRATE = grp[&quot;INTRATE&quot;] )
+chow.test(y2, x2, y1, x1)</code></pre>
+<pre><code>## F value   d.f.1   d.f.2 P value 
+##      NA       3      -6      NA</code></pre>
+<pre class="r"><code>sumRes &lt;- sum(taylorModel$residuals^2)
+
+federalRatesData$Year &lt;- substr(federalRatesData$OBS, 1, 4)
+fedDataPre &lt;- federalRatesData[federalRatesData$Year &lt; 1980, ]
+modelPre &lt;- lm(INTRATE ~ INFL + PROD, data = fedDataPre)
+sumResPre &lt;- sum(modelPre$residuals^2)</code></pre>
+<pre class="r"><code>fedDataPost &lt;- federalRatesData[federalRatesData$Year &gt;= 1980, ]
+modelPost &lt;- lm(INTRATE ~ INFL + PROD, data = fedDataPost)
+sumResPost &lt;- sum(modelPost$residuals^2)</code></pre>
+<pre class="r"><code>s0 = sumRes
+s1 = 237
+s2 = sumResPost
+
+a3 = (s0 - (s1 + s2))/k
+b3 = (s1 + s2)/(n-(2*k))
+
+fTest3 = a3/b3
+
+fTest3</code></pre>
+<pre><code>## [1] 55.535</code></pre>
+<pre class="r"><code>pf(q=fTest3, df1=k, df2=(n-(2*k)), lower.tail=FALSE)</code></pre>
+<pre><code>## [1] 0.000000000000000000000052315</code></pre>
+<pre class="r"><code>n2 = nrow(fedDataPost)
+n1 = nrow(fedDataPre)
+a4 = (s0 - s1)/n2
+b4 = s1/(n1-k)
+
+fTest4 = a4/b4
+fTest4</code></pre>
+<pre><code>## [1] 8.2116</code></pre>
+<pre class="r"><code>pf(q=fTest4, df1=n2, df2=n1-k, lower.tail=FALSE)</code></pre>
+<pre><code>## [1] 0.000000000000000000000000000000000000000000000000000000022144</code></pre>
+</div>
+</div>
+<div id="appendix-a" class="section level3">
+<h3>Appendix A</h3>
 <pre class="r"><code>summary(lm(INTRATE ~ INFL + PROD + UNEMPL + COMMPRI + PCE + PERSINC + HOUST, data = federalRatesData))</code></pre>
 <pre><code>## 
 ## Call:
@@ -169,25 +405,25 @@ head(federalRatesData)</code></pre>
 ##     PERSINC + HOUST, data = federalRatesData)
 ## 
 ## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -7.4066 -1.4340 -0.1175  1.3555  7.7386 
+##    Min     1Q Median     3Q    Max 
+## -7.407 -1.434 -0.117  1.355  7.739 
 ## 
 ## Coefficients:
-##              Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept) -0.221161   0.244995  -0.903   0.3670    
-## INFL         0.696059   0.062229  11.185  &lt; 2e-16 ***
-## PROD        -0.057743   0.039900  -1.447   0.1483    
-## UNEMPL       0.102481   0.096757   1.059   0.2899    
-## COMMPRI     -0.005521   0.002974  -1.857   0.0638 .  
-## PCE          0.344380   0.069455   4.958 9.08e-07 ***
-## PERSINC      0.246999   0.060590   4.077 5.13e-05 ***
-## HOUST       -0.019411   0.004672  -4.155 3.68e-05 ***
+##             Estimate Std. Error t value             Pr(&gt;|t|)    
+## (Intercept) -0.22116    0.24499   -0.90                0.367    
+## INFL         0.69606    0.06223   11.19 &lt; 0.0000000000000002 ***
+## PROD        -0.05774    0.03990   -1.45                0.148    
+## UNEMPL       0.10248    0.09676    1.06                0.290    
+## COMMPRI     -0.00552    0.00297   -1.86                0.064 .  
+## PCE          0.34438    0.06946    4.96           0.00000091 ***
+## PERSINC      0.24700    0.06059    4.08           0.00005135 ***
+## HOUST       -0.01941    0.00467   -4.16           0.00003683 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 2.188 on 652 degrees of freedom
-## Multiple R-squared:  0.6385, Adjusted R-squared:  0.6346 
-## F-statistic: 164.5 on 7 and 652 DF,  p-value: &lt; 2.2e-16</code></pre>
+## Residual standard error: 2.19 on 652 degrees of freedom
+## Multiple R-squared:  0.639,  Adjusted R-squared:  0.635 
+## F-statistic:  165 on 7 and 652 DF,  p-value: &lt;0.0000000000000002</code></pre>
 <p>Remove UNEMPL as it has the highest p-value</p>
 <pre class="r"><code>summary(lm(INTRATE ~ INFL + PROD + COMMPRI + PCE + PERSINC + HOUST, data = federalRatesData))</code></pre>
 <pre><code>## 
@@ -196,25 +432,50 @@ head(federalRatesData)</code></pre>
 ##     HOUST, data = federalRatesData)
 ## 
 ## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -7.5322 -1.4982 -0.1005  1.3882  7.6954 
+##    Min     1Q Median     3Q    Max 
+## -7.532 -1.498 -0.101  1.388  7.695 
 ## 
 ## Coefficients:
-##              Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept) -0.290851   0.236016  -1.232   0.2183    
-## INFL         0.693309   0.062180  11.150  &lt; 2e-16 ***
-## PROD        -0.025460   0.025752  -0.989   0.3232    
-## COMMPRI     -0.006514   0.002822  -2.308   0.0213 *  
-## PCE          0.368561   0.065602   5.618 2.86e-08 ***
-## PERSINC      0.251581   0.060441   4.162 3.57e-05 ***
-## HOUST       -0.021023   0.004417  -4.760 2.39e-06 ***
+##             Estimate Std. Error t value             Pr(&gt;|t|)    
+## (Intercept) -0.29085    0.23602   -1.23                0.218    
+## INFL         0.69331    0.06218   11.15 &lt; 0.0000000000000002 ***
+## PROD        -0.02546    0.02575   -0.99                0.323    
+## COMMPRI     -0.00651    0.00282   -2.31                0.021 *  
+## PCE          0.36856    0.06560    5.62          0.000000029 ***
+## PERSINC      0.25158    0.06044    4.16          0.000035705 ***
+## HOUST       -0.02102    0.00442   -4.76          0.000002390 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 2.188 on 653 degrees of freedom
-## Multiple R-squared:  0.6379, Adjusted R-squared:  0.6346 
-## F-statistic: 191.7 on 6 and 653 DF,  p-value: &lt; 2.2e-16</code></pre>
+## Residual standard error: 2.19 on 653 degrees of freedom
+## Multiple R-squared:  0.638,  Adjusted R-squared:  0.635 
+## F-statistic:  192 on 6 and 653 DF,  p-value: &lt;0.0000000000000002</code></pre>
 <p>Remove PROD as it has the highest p-value in the model</p>
+<pre class="r"><code>summary(lm(INTRATE ~ INFL + COMMPRI + PCE + PERSINC + HOUST, data = federalRatesData))</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = INTRATE ~ INFL + COMMPRI + PCE + PERSINC + HOUST, 
+##     data = federalRatesData)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -7.163 -1.524 -0.112  1.372  7.672 
+## 
+## Coefficients:
+##             Estimate Std. Error t value             Pr(&gt;|t|)    
+## (Intercept) -0.24012    0.23037   -1.04               0.2976    
+## INFL         0.71753    0.05715   12.55 &lt; 0.0000000000000002 ***
+## COMMPRI     -0.00750    0.00264   -2.84               0.0046 ** 
+## PCE          0.34053    0.05916    5.76          0.000000013 ***
+## PERSINC      0.24024    0.05934    4.05          0.000057730 ***
+## HOUST       -0.02053    0.00439   -4.68          0.000003523 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 2.19 on 654 degrees of freedom
+## Multiple R-squared:  0.637,  Adjusted R-squared:  0.635 
+## F-statistic:  230 on 5 and 654 DF,  p-value: &lt;0.0000000000000002</code></pre>
+<p>library(gap) federalRatesData<span class="math inline">\(Year &lt;- substr(federalRatesData\)</span>OBS, 1, 4) grp &lt;- federalRatesData[federalRatesData$Year &lt; 1980, ] x1 &lt;- grp[, c(“Year”, “INFL”, “PROD”)]; y1 &lt;- data.frame( INTRATE = grp[“Year”,“INTRATE”] ) grp &lt;- federalRatesData[federalRatesData$Year &gt;= 1980, ] x2 &lt;- grp[, c“Year”, “INFL”, “PROD”)]; y2 &lt;- data.frame( INTRATE = grp[“Year”, “INTRATE”] ) chow.test(y1, x1, y2, x2)</p>
 </div>
 </div>
 

@@ -7,8 +7,12 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+options(digits = 5, scipen = 999)
 rm(list = ls())
 library(dplyr)
+library(lmtest)
+library(moments)
+library(gap)
 setwd("~/Documents/2017/Coursera/Econometrics/Week 3")
 ```
 
@@ -33,14 +37,228 @@ Monthly data are available for the USA over the period 1960 through 2014 for the
 * PERSINC: Personal income
 * HOUST: Housing starts
 
-### Loading in the dataset
-
-```{r}
+```{r echo = FALSE}
 federalRatesData <- read.table("TestExercise 3.txt", header=TRUE)
-head(federalRatesData)
 ```
 
 ### Question 1
+**Use general-to-specific to come to a model. Start by regressing the federal funds rate on the other 7 variables and eliminate 1 variable at a time.**
+
+The table below outlines the execution results of the models, with each model removing a variable based on their p-value. The variable with the highest p value is removed, and the model is run with the remaining variables. The removal of variables stops when the p-values of all the remaining variables are above 0.05. 
+
+```{r echo = FALSE}
+model1 <- lm(INTRATE ~ INFL + PROD + UNEMPL + COMMPRI + PCE + PERSINC + HOUST, data = federalRatesData)
+
+model2 <- lm(INTRATE ~ INFL + PROD + COMMPRI + PCE + PERSINC + HOUST, data = federalRatesData)
+
+model3 <- lm(INTRATE ~ INFL + COMMPRI + PCE + PERSINC + HOUST, data = federalRatesData)
+```
+
+
+Variable  | Model 1 p-value                       | Model 2 p-value                       | Model 3 p-value                       
+----------|---------------------------------------|---------------------------------------|---------------------------------------
+Intercept | `r summary(model1)$coefficients[1,4]` | `r summary(model2)$coefficients[1,4]` | `r summary(model3)$coefficients[1,4]` 
+INFL      | `r summary(model1)$coefficients[2,4]` | `r summary(model2)$coefficients[2,4]` | `r summary(model3)$coefficients[2,4]`
+PROD      | `r summary(model1)$coefficients[3,4]` | `r summary(model2)$coefficients[3,4]` | 
+UNEMPL    | `r summary(model1)$coefficients[4,4]` |                                       |
+COMMPRI   | `r summary(model1)$coefficients[5,4]` | `r summary(model2)$coefficients[4,4]` | `r summary(model3)$coefficients[3,4]`
+PCE       | `r summary(model1)$coefficients[6,4]` | `r summary(model2)$coefficients[5,4]` | `r summary(model3)$coefficients[4,4]`
+PERSINC   | `r summary(model1)$coefficients[7,4]` | `r summary(model2)$coefficients[6,4]` | `r summary(model3)$coefficients[5,4]`
+HOUST     | `r summary(model1)$coefficients[8,4]` | `r summary(model2)$coefficients[7,4]` | `r summary(model3)$coefficients[6,4]`
+
+As it can be seen above the final model chosen using the general to specific methodology is:
+
+$$INTRATE = 0.71753*INFL -0.00750*COMMPRI$$
+$$+ 0.34053*PCE + 0.24024*PERSINC$$ 
+$$-0.02053*HOUST -0.24012$$
+
+
+### Question 2
+**Use specific-to-general to come to a model. Start by regressing the federal funds rate on only a constant and
+add 1 variable at a time. Is the model the same as in (a)?**
+
+The table below lists the p-value and t-statistics of each model simulation that was run. Using the specific-to-general methodology one variable is chosen at a time based on the highest t-statistic until the p-value of all remaining variables exceed 0.05. 
+
+```{r echo=FALSE}
+# Model 1
+oneVar1 <- summary(lm(INTRATE ~ INFL, data = federalRatesData))$coefficients[2,3]
+oneVar2 <- summary(lm(INTRATE ~ PROD, data = federalRatesData))$coefficients[2,3]
+oneVar3 <- summary(lm(INTRATE ~ UNEMPL, data = federalRatesData))$coefficients[2,3]
+oneVar4 <- summary(lm(INTRATE ~ COMMPRI, data = federalRatesData))$coefficients[2,3]
+oneVar5 <- summary(lm(INTRATE ~ PCE, data = federalRatesData))$coefficients[2,3]
+oneVar6 <- summary(lm(INTRATE ~ PERSINC, data = federalRatesData))$coefficients[2,3]
+oneVar7 <- summary(lm(INTRATE ~ HOUST, data = federalRatesData))$coefficients[2,3]
+
+onePVar1 <- summary(lm(INTRATE ~ INFL, data = federalRatesData))$coefficients[2,4]
+onePVar2 <- summary(lm(INTRATE ~ PROD, data = federalRatesData))$coefficients[2,4]
+onePVar3 <- summary(lm(INTRATE ~ UNEMPL, data = federalRatesData))$coefficients[2,4]
+onePVar4 <- summary(lm(INTRATE ~ COMMPRI, data = federalRatesData))$coefficients[2,4]
+onePVar5 <- summary(lm(INTRATE ~ PCE, data = federalRatesData))$coefficients[2,4]
+onePVar6 <- summary(lm(INTRATE ~ PERSINC, data = federalRatesData))$coefficients[2,4]
+onePVar7 <- summary(lm(INTRATE ~ HOUST, data = federalRatesData))$coefficients[2,4]
+
+# Model 2
+twoVar1 <- summary(lm(INTRATE ~ INFL + PROD, data = federalRatesData))$coefficients[3,3]
+twoVar2 <- summary(lm(INTRATE ~ INFL + UNEMPL, data = federalRatesData))$coefficients[3,3]
+twoVar3 <- summary(lm(INTRATE ~ INFL + COMMPRI, data = federalRatesData))$coefficients[3,3]
+twoVar4 <- summary(lm(INTRATE ~ INFL + PCE, data = federalRatesData))$coefficients[3,3]
+twoVar5 <- summary(lm(INTRATE ~ INFL + PERSINC, data = federalRatesData))$coefficients[3,3]
+twoVar6 <- summary(lm(INTRATE ~ INFL + HOUST, data = federalRatesData))$coefficients[3,3]
+
+twoPVar1 <- summary(lm(INTRATE ~ INFL + PROD, data = federalRatesData))$coefficients[3,4]
+twoPVar2 <- summary(lm(INTRATE ~ INFL + UNEMPL, data = federalRatesData))$coefficients[3,4]
+twoPVar3 <- summary(lm(INTRATE ~ INFL + COMMPRI, data = federalRatesData))$coefficients[3,4]
+twoPVar4 <- summary(lm(INTRATE ~ INFL + PCE, data = federalRatesData))$coefficients[3,4]
+twoPVar5 <- summary(lm(INTRATE ~ INFL + PERSINC, data = federalRatesData))$coefficients[3,4]
+twoPVar6 <- summary(lm(INTRATE ~ INFL + HOUST, data = federalRatesData))$coefficients[3,4]
+
+# Model 3
+threeVar1 <- summary(lm(INTRATE ~ INFL + PERSINC + PROD, data = federalRatesData))$coefficients[4,3]
+threeVar2 <- summary(lm(INTRATE ~ INFL + PERSINC + UNEMPL, data = federalRatesData))$coefficients[4,3]
+threeVar3 <- summary(lm(INTRATE ~ INFL + PERSINC + COMMPRI, data = federalRatesData))$coefficients[4,3]
+threeVar4 <- summary(lm(INTRATE ~ INFL + PERSINC + PCE, data = federalRatesData))$coefficients[4,3]
+threeVar5 <- summary(lm(INTRATE ~ INFL + PERSINC + HOUST, data = federalRatesData))$coefficients[4,3]
+
+threePVar1 <- summary(lm(INTRATE ~ INFL + PERSINC + PROD, data = federalRatesData))$coefficients[4,4]
+threePVar2 <- summary(lm(INTRATE ~ INFL + PERSINC + UNEMPL, data = federalRatesData))$coefficients[4,4]
+threePVar3 <- summary(lm(INTRATE ~ INFL + PERSINC + COMMPRI, data = federalRatesData))$coefficients[4,4]
+threePVar4 <- summary(lm(INTRATE ~ INFL + PERSINC + PCE, data = federalRatesData))$coefficients[4,4]
+threePVar5 <- summary(lm(INTRATE ~ INFL + PERSINC + HOUST, data = federalRatesData))$coefficients[4,4]
+
+# Model 4
+fourVar1 <- summary(lm(INTRATE ~ INFL + PERSINC + PCE + PROD, data = federalRatesData))$coefficients[5,3]
+fourVar2 <- summary(lm(INTRATE ~ INFL + PERSINC + PCE + UNEMPL, data = federalRatesData))$coefficients[5,3]
+fourVar3 <- summary(lm(INTRATE ~ INFL + PERSINC + PCE + COMMPRI, data = federalRatesData))$coefficients[5,3]
+fourVar4 <- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST, data = federalRatesData))$coefficients[5,3]
+
+fourPVar1 <- summary(lm(INTRATE ~ INFL + PERSINC + PCE + PROD, data = federalRatesData))$coefficients[5,4]
+fourPVar2 <- summary(lm(INTRATE ~ INFL + PERSINC + PCE + UNEMPL, data = federalRatesData))$coefficients[5,4]
+fourPVar3 <- summary(lm(INTRATE ~ INFL + PERSINC + PCE + COMMPRI, data = federalRatesData))$coefficients[5,4]
+fourPVar4 <- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST, data = federalRatesData))$coefficients[5,4]
+
+# Model 5
+fiveVar1 <- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + PROD, data = federalRatesData))$coefficients[6,3]
+fiveVar2 <- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + UNEMPL, data = federalRatesData))$coefficients[6,3]
+fiveVar3 <- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + COMMPRI, data = federalRatesData))$coefficients[6,3]
+
+fivePVar1 <- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + PROD, data = federalRatesData))$coefficients[6,4]
+fivePVar2 <- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + UNEMPL, data = federalRatesData))$coefficients[6,4]
+fivePVar3 <- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + COMMPRI, data = federalRatesData))$coefficients[6,4]
+
+# Model 6
+sixVar1 <- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + COMMPRI + PROD, data = federalRatesData))$coefficients[7,3]
+sixVar2 <- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + COMMPRI + UNEMPL, data = federalRatesData))$coefficients[7,3]
+
+sixPVar1 <- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + COMMPRI + PROD, data = federalRatesData))$coefficients[7,4]
+sixPVar2 <- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + COMMPRI + UNEMPL, data = federalRatesData))$coefficients[7,4]
+```
+
+Variable                        | Model 1                        | Model 2                        | Model 3                            | Model 4                           | Model 5                           | Model 6
+--------------------------------|--------------------------------|--------------------------------|------------------------------------|-----------------------------------|-----------------------------------|-------------
+INFL<br>t-value<br>p-value      | <br>`r oneVar1`<br>`r onePVar1`|  <br> *Variable Chosen*        | <br> *Variable Chosen*             | <br> *Variable Chosen*            | <br> *Variable Chosen* | <br> *Variable Chosen* 
+PROD<br>t-value<br>p-value      | <br>`r oneVar2`<br>`r onePVar2`| <br>`r twoVar1`<br>`r twoPVar1`| <br>`r threeVar1`<br>`r threePVar1`| <br>`r fourVar1`<br>`r fourPVar1` | <br>`r fiveVar1`<br>`r fivePVar1`| <br>`r sixVar1`<br>`r sixPVar1`
+UNEMPL<br>t-value<br>p-value    | <br>`r oneVar3`<br>`r onePVar3`| <br>`r twoVar2`<br>`r twoPVar2`| <br>`r threeVar2`<br>`r threePVar2`| <br>`r fourVar2`<br>`r fourPVar2` | <br>`r fiveVar2`<br>`r fivePVar2`| <br>`r sixVar2`<br>`r sixPVar2`
+COMMPRI<br>t-value<br>p-value   | <br>`r oneVar4`<br>`r onePVar4`| <br>`r twoVar3`<br>`r twoPVar3`| <br>`r threeVar3`<br>`r threePVar3`| <br>`r fourVar3`<br>`r fourPVar3` | <br>`r fiveVar3`<br>`r fivePVar3` | <br> *Variable Chosen* 
+PCE<br>t-value<br>p-value       | <br>`r oneVar5`<br>`r onePVar5`| <br>`r twoVar4`<br>`r twoPVar4`| <br>`r threeVar4`<br>`r threePVar4`| <br> *Variable Chosen*            | <br> *Variable Chosen* | <br> *Variable Chosen* 
+PERSINC<br>t-value<br>p-value   | <br>`r oneVar6`<br>`r onePVar6`| <br>`r twoVar5`<br>`r twoPVar5`| <br> *Variable Chosen*             | <br> *Variable Chosen*            | <br> *Variable Chosen* | <br> *Variable Chosen* 
+HOUST<br>t-value<br>p-value     | <br>`r oneVar7`<br>`r onePVar7`| <br>`r twoVar6`<br>`r twoPVar6`| <br>`r threeVar5`<br>`r threePVar5`| <br>`r fourVar4`<br>`r fourPVar4` | <br> *Variable Chosen* | <br> *Variable Chosen* 
+
+```{r}
+summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + COMMPRI, data = federalRatesData))$coefficients[,1]
+```
+
+As it can be seen above, the model is the same as question (a).
+
+### Question 3
+**Compare your model from (a) and the Taylor rule of equation (1). Consider $R^2$, AIC and BIC. Which of the models do you prefer?**
+
+The Taylor model only considers two variables, $INFL$ and $PROD$. Regressing the model on these two variables, we get the following coefficients. 
+
+```{r}
+taylorModel <- lm(INTRATE ~ INFL + PROD, data = federalRatesData)
+summary(taylorModel)
+```
+
+
+```{r}
+s = sqrt(deviance(taylorModel)/df.residual(taylorModel))
+k = 2
+n = nrow(federalRatesData)
+
+aic = log(s^2) + ((2*k)/n)
+aic
+
+bic = log(s^2) + (k*log(n))/n
+bic
+
+taylorRSquared <- summary(taylorModel)$r.squared
+```
+
+### Question 4
+Test the Taylor rule of equation (1) using the RESET test, Chow break and forecast test (with in both tests as break date January 1980) and a Jarque-Bera test. What do you conclude?
+
+```{r}
+resettest(taylorModel, power = 2, type = "fitted", data = federalRatesData)
+```
+
+#### Chow Break Test
+
+```{r}
+grp <- federalRatesData[federalRatesData$Year < 1980, ]
+x1 <- grp[, c("INFL", "PROD")]; 
+y1 <- data.frame( INTRATE = grp["INTRATE"] )
+grp <- federalRatesData[federalRatesData$Year >= 1980, ]
+x2 <- grp[, c("INFL", "PROD")]; y2 <- data.frame( INTRATE = grp["INTRATE"] )
+chow.test(y2, x2, y1, x1)
+```
+
+
+
+
+```{r}
+sumRes <- sum(taylorModel$residuals^2)
+
+federalRatesData$Year <- substr(federalRatesData$OBS, 1, 4)
+fedDataPre <- federalRatesData[federalRatesData$Year < 1980, ]
+modelPre <- lm(INTRATE ~ INFL + PROD, data = fedDataPre)
+sumResPre <- sum(modelPre$residuals^2)
+```
+
+```{r}
+fedDataPost <- federalRatesData[federalRatesData$Year >= 1980, ]
+modelPost <- lm(INTRATE ~ INFL + PROD, data = fedDataPost)
+sumResPost <- sum(modelPost$residuals^2)
+```
+
+```{r}
+s0 = sumRes
+s1 = 237
+s2 = sumResPost
+
+a3 = (s0 - (s1 + s2))/k
+b3 = (s1 + s2)/(n-(2*k))
+
+fTest3 = a3/b3
+
+fTest3
+pf(q=fTest3, df1=k, df2=(n-(2*k)), lower.tail=FALSE)
+```
+
+
+```{r}
+n2 = nrow(fedDataPost)
+n1 = nrow(fedDataPre)
+a4 = (s0 - s1)/n2
+b4 = s1/(n1-k)
+
+fTest4 = a4/b4
+fTest4
+pf(q=fTest4, df1=n2, df2=n1-k, lower.tail=FALSE)
+```
+
+
+### Appendix A
+
 ```{r}
 summary(lm(INTRATE ~ INFL + PROD + UNEMPL + COMMPRI + PCE + PERSINC + HOUST, data = federalRatesData))
 ```
@@ -52,3 +270,18 @@ summary(lm(INTRATE ~ INFL + PROD + COMMPRI + PCE + PERSINC + HOUST, data = feder
 ```
 
 Remove PROD as it has the highest p-value in the model
+
+```{r}
+summary(lm(INTRATE ~ INFL + COMMPRI + PCE + PERSINC + HOUST, data = federalRatesData))
+```
+
+
+library(gap)
+federalRatesData$Year <- substr(federalRatesData$OBS, 1, 4)
+grp <- federalRatesData[federalRatesData$Year < 1980, ]
+x1 <- grp[, c("Year", "INFL", "PROD")]; 
+y1 <- data.frame( INTRATE = grp["Year","INTRATE"] )
+grp <- federalRatesData[federalRatesData$Year >= 1980, ]
+x2 <- grp[, c"Year", "INFL", "PROD")]; y2 <- data.frame( INTRATE = grp["Year", "INTRATE"] )
+chow.test(y1, x1, y2, x2)
+
