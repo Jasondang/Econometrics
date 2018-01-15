@@ -307,7 +307,7 @@ $(document).ready(function () {
 <div id="question-3" class="section level3">
 <h3>Question 3</h3>
 <p><strong>Compare your model from (a) and the Taylor rule of equation (1). Consider <span class="math inline">\(R^2\)</span>, AIC and BIC. Which of the models do you prefer?</strong></p>
-<p>The Taylor model only considers two variables, <span class="math display">\[INFL\]</span> and <span class="math display">\[PROD\]</span>.</p>
+<p>The Taylor model only considers two variables, <span class="math inline">\(INFL\)</span> and <span class="math inline">\(PROD\)</span>. Regressing the model on these two variables, we get the following coefficients.</p>
 <pre class="r"><code>taylorModel &lt;- lm(INTRATE ~ INFL + PROD, data = federalRatesData)
 summary(taylorModel)</code></pre>
 <pre><code>## 
@@ -329,49 +329,206 @@ summary(taylorModel)</code></pre>
 ## Residual standard error: 2.36 on 657 degrees of freedom
 ## Multiple R-squared:  0.575,  Adjusted R-squared:  0.573 
 ## F-statistic:  444 on 2 and 657 DF,  p-value: &lt;0.0000000000000002</code></pre>
-<pre class="r"><code>s = sqrt(deviance(taylorModel)/df.residual(taylorModel))
-
-k = 2
-
-n = nrow(federalRatesData)
-
-aic = log(s^2) + ((2*k)/n)
-aic</code></pre>
-<pre><code>## [1] 1.7267</code></pre>
-<pre class="r"><code>bic = log(s^2) + (k*log(n))/n
-bic</code></pre>
-<pre><code>## [1] 1.7403</code></pre>
-<pre class="r"><code>taylorRSquared &lt;- summary(taylorModel)$r.squared</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Taylor Value</th>
+<th>Reduced Model Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>AIC</td>
+<td>1.7267</td>
+<td>1.58099</td>
+</tr>
+<tr class="even">
+<td>BIC</td>
+<td>1.74032</td>
+<td>1.61502</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(R^2\)</span></td>
+<td>0.5747</td>
+<td>0.63736</td>
+</tr>
+</tbody>
+</table>
+<p>Based on the value of AIC and BIC for the two models, since the reduced model contains lower AIC and BIC values, this is the preferred model. Additionally the <span class="math inline">\(R^2\)</span> value indicates how much of the variability the model explain for and since the value of <span class="math inline">\(R^2\)</span> is higher in there reduced model, this provides further evidence supporting the reduced model value.</p>
 </div>
 <div id="question-4" class="section level3">
 <h3>Question 4</h3>
-<p>Test the Taylor rule of equation (1) using the RESET test, Chow break and forecast test (with in both tests as break date January 1980) and a Jarque-Bera test. What do you conclude?</p>
-<pre class="r"><code>resettest(taylorModel, power = 2, type = &quot;fitted&quot;, data = federalRatesData)</code></pre>
-<pre><code>## 
-##  RESET test
-## 
-## data:  taylorModel
-## RESET = 2.54, df1 = 1, df2 = 656, p-value = 0.11</code></pre>
-<div id="chow-break-test" class="section level4">
-<h4>Chow Break Test</h4>
-<pre class="r"><code>grp &lt;- federalRatesData[federalRatesData$Year &lt; 1980, ]
+<p><strong>Test the Taylor rule of equation (1) using the RESET test, Chow break and forecast test (with in both tests as break date January 1980) and a Jarque-Bera test. What do you conclude?</strong></p>
+<p>For the chow test, 1980 was used as the break point.</p>
+<p>The results of each of the 4 tests can be found in the table below:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Test</th>
+<th>Test Statistic</th>
+<th>p-value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>RESET</td>
+<td>2.53712</td>
+<td>0.11168</td>
+</tr>
+<tr class="even">
+<td>Chow Break</td>
+<td>28.73501</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>Chow Forecast</td>
+<td>55.53487</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>Jarque-Bera</td>
+<td>8.21163</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p>Based on the table above, the p-value of RESET test indicates that we do not reject the null hypothesis of the correct model specification. However both the chow tests and the Jarque-Bera reject the null of no breaks and normality of the residuals. Therefore from this the Taylor model is not a suitable model.</p>
+</div>
+<div id="appendix" class="section level3">
+<h3>Appendix</h3>
+<div id="question-1-1" class="section level4">
+<h4>Question 1</h4>
+<pre class="r"><code>model1 &lt;- lm(INTRATE ~ INFL + PROD + UNEMPL + COMMPRI + PCE + PERSINC + HOUST, data = federalRatesData)
+
+model2 &lt;- lm(INTRATE ~ INFL + PROD + COMMPRI + PCE + PERSINC + HOUST, data = federalRatesData)
+
+model3 &lt;- lm(INTRATE ~ INFL + COMMPRI + PCE + PERSINC + HOUST, data = federalRatesData)</code></pre>
+</div>
+<div id="question-2-1" class="section level4">
+<h4>Question 2</h4>
+<pre class="r"><code># Model 1
+oneVar1 &lt;- summary(lm(INTRATE ~ INFL, data = federalRatesData))$coefficients[2,3]
+oneVar2 &lt;- summary(lm(INTRATE ~ PROD, data = federalRatesData))$coefficients[2,3]
+oneVar3 &lt;- summary(lm(INTRATE ~ UNEMPL, data = federalRatesData))$coefficients[2,3]
+oneVar4 &lt;- summary(lm(INTRATE ~ COMMPRI, data = federalRatesData))$coefficients[2,3]
+oneVar5 &lt;- summary(lm(INTRATE ~ PCE, data = federalRatesData))$coefficients[2,3]
+oneVar6 &lt;- summary(lm(INTRATE ~ PERSINC, data = federalRatesData))$coefficients[2,3]
+oneVar7 &lt;- summary(lm(INTRATE ~ HOUST, data = federalRatesData))$coefficients[2,3]
+
+onePVar1 &lt;- summary(lm(INTRATE ~ INFL, data = federalRatesData))$coefficients[2,4]
+onePVar2 &lt;- summary(lm(INTRATE ~ PROD, data = federalRatesData))$coefficients[2,4]
+onePVar3 &lt;- summary(lm(INTRATE ~ UNEMPL, data = federalRatesData))$coefficients[2,4]
+onePVar4 &lt;- summary(lm(INTRATE ~ COMMPRI, data = federalRatesData))$coefficients[2,4]
+onePVar5 &lt;- summary(lm(INTRATE ~ PCE, data = federalRatesData))$coefficients[2,4]
+onePVar6 &lt;- summary(lm(INTRATE ~ PERSINC, data = federalRatesData))$coefficients[2,4]
+onePVar7 &lt;- summary(lm(INTRATE ~ HOUST, data = federalRatesData))$coefficients[2,4]
+
+# Model 2
+twoVar1 &lt;- summary(lm(INTRATE ~ INFL + PROD, data = federalRatesData))$coefficients[3,3]
+twoVar2 &lt;- summary(lm(INTRATE ~ INFL + UNEMPL, data = federalRatesData))$coefficients[3,3]
+twoVar3 &lt;- summary(lm(INTRATE ~ INFL + COMMPRI, data = federalRatesData))$coefficients[3,3]
+twoVar4 &lt;- summary(lm(INTRATE ~ INFL + PCE, data = federalRatesData))$coefficients[3,3]
+twoVar5 &lt;- summary(lm(INTRATE ~ INFL + PERSINC, data = federalRatesData))$coefficients[3,3]
+twoVar6 &lt;- summary(lm(INTRATE ~ INFL + HOUST, data = federalRatesData))$coefficients[3,3]
+
+twoPVar1 &lt;- summary(lm(INTRATE ~ INFL + PROD, data = federalRatesData))$coefficients[3,4]
+twoPVar2 &lt;- summary(lm(INTRATE ~ INFL + UNEMPL, data = federalRatesData))$coefficients[3,4]
+twoPVar3 &lt;- summary(lm(INTRATE ~ INFL + COMMPRI, data = federalRatesData))$coefficients[3,4]
+twoPVar4 &lt;- summary(lm(INTRATE ~ INFL + PCE, data = federalRatesData))$coefficients[3,4]
+twoPVar5 &lt;- summary(lm(INTRATE ~ INFL + PERSINC, data = federalRatesData))$coefficients[3,4]
+twoPVar6 &lt;- summary(lm(INTRATE ~ INFL + HOUST, data = federalRatesData))$coefficients[3,4]
+
+# Model 3
+threeVar1 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PROD, data = federalRatesData))$coefficients[4,3]
+threeVar2 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + UNEMPL, data = federalRatesData))$coefficients[4,3]
+threeVar3 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + COMMPRI, data = federalRatesData))$coefficients[4,3]
+threeVar4 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE, data = federalRatesData))$coefficients[4,3]
+threeVar5 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + HOUST, data = federalRatesData))$coefficients[4,3]
+
+threePVar1 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PROD, data = federalRatesData))$coefficients[4,4]
+threePVar2 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + UNEMPL, data = federalRatesData))$coefficients[4,4]
+threePVar3 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + COMMPRI, data = federalRatesData))$coefficients[4,4]
+threePVar4 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE, data = federalRatesData))$coefficients[4,4]
+threePVar5 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + HOUST, data = federalRatesData))$coefficients[4,4]
+
+# Model 4
+fourVar1 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE + PROD, data = federalRatesData))$coefficients[5,3]
+fourVar2 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE + UNEMPL, data = federalRatesData))$coefficients[5,3]
+fourVar3 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE + COMMPRI, data = federalRatesData))$coefficients[5,3]
+fourVar4 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST, data = federalRatesData))$coefficients[5,3]
+
+fourPVar1 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE + PROD, data = federalRatesData))$coefficients[5,4]
+fourPVar2 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE + UNEMPL, data = federalRatesData))$coefficients[5,4]
+fourPVar3 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE + COMMPRI, data = federalRatesData))$coefficients[5,4]
+fourPVar4 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST, data = federalRatesData))$coefficients[5,4]
+
+# Model 5
+fiveVar1 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + PROD, data = federalRatesData))$coefficients[6,3]
+fiveVar2 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + UNEMPL, data = federalRatesData))$coefficients[6,3]
+fiveVar3 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + COMMPRI, data = federalRatesData))$coefficients[6,3]
+
+fivePVar1 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + PROD, data = federalRatesData))$coefficients[6,4]
+fivePVar2 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + UNEMPL, data = federalRatesData))$coefficients[6,4]
+fivePVar3 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + COMMPRI, data = federalRatesData))$coefficients[6,4]
+
+# Model 6
+sixVar1 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + COMMPRI + PROD, data = federalRatesData))$coefficients[7,3]
+sixVar2 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + COMMPRI + UNEMPL, data = federalRatesData))$coefficients[7,3]
+
+sixPVar1 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + COMMPRI + PROD, data = federalRatesData))$coefficients[7,4]
+sixPVar2 &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + COMMPRI + UNEMPL, data = federalRatesData))$coefficients[7,4]</code></pre>
+</div>
+<div id="question-3-1" class="section level4">
+<h4>Question 3</h4>
+<pre class="r"><code>s = sqrt(deviance(taylorModel)/df.residual(taylorModel))
+k = 2
+n = nrow(federalRatesData)
+
+aic = log(s^2) + ((2*k)/n)
+
+bic = log(s^2) + (k*log(n))/n
+
+taylorRSquared &lt;- summary(taylorModel)$r.squared
+
+reducedModel &lt;- lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + COMMPRI, data = federalRatesData)
+
+s2 = sqrt(deviance(reducedModel)/df.residual(reducedModel))
+k2=5
+
+aic2 = log(s2^2) + ((2*k2)/n)
+
+bic2 = log(s2^2) + (k2*log(n))/n
+
+reduceRSquared &lt;- summary(lm(INTRATE ~ INFL + PERSINC + PCE + HOUST + COMMPRI, data = federalRatesData))$r.squared</code></pre>
+</div>
+<div id="question-4-1" class="section level4">
+<h4>Question 4</h4>
+<pre class="r"><code>resetStat &lt;- resettest(taylorModel, power = 2, type = &quot;fitted&quot;, data = federalRatesData)$statistic
+resetPvalue &lt;- resettest(taylorModel, power = 2, type = &quot;fitted&quot;, data = federalRatesData)$p.value
+
+# Chow Break Test
+federalRatesData$Year &lt;- substr(federalRatesData$OBS, 1, 4)
+grp &lt;- federalRatesData[federalRatesData$Year &lt; 1980, ]
 x1 &lt;- grp[, c(&quot;INFL&quot;, &quot;PROD&quot;)]; 
 y1 &lt;- data.frame( INTRATE = grp[&quot;INTRATE&quot;] )
 grp &lt;- federalRatesData[federalRatesData$Year &gt;= 1980, ]
 x2 &lt;- grp[, c(&quot;INFL&quot;, &quot;PROD&quot;)]; y2 &lt;- data.frame( INTRATE = grp[&quot;INTRATE&quot;] )
-chow.test(y2, x2, y1, x1)</code></pre>
-<pre><code>## F value   d.f.1   d.f.2 P value 
-##      NA       3      -6      NA</code></pre>
-<pre class="r"><code>sumRes &lt;- sum(taylorModel$residuals^2)
+chowBreak &lt;- chow.test(y2, x2, y1, x1)
+
+# Chow Forecast Test
+sumRes &lt;- sum(taylorModel$residuals^2)
 
 federalRatesData$Year &lt;- substr(federalRatesData$OBS, 1, 4)
 fedDataPre &lt;- federalRatesData[federalRatesData$Year &lt; 1980, ]
 modelPre &lt;- lm(INTRATE ~ INFL + PROD, data = fedDataPre)
-sumResPre &lt;- sum(modelPre$residuals^2)</code></pre>
-<pre class="r"><code>fedDataPost &lt;- federalRatesData[federalRatesData$Year &gt;= 1980, ]
+sumResPre &lt;- sum(modelPre$residuals^2)
+
+fedDataPost &lt;- federalRatesData[federalRatesData$Year &gt;= 1980, ]
 modelPost &lt;- lm(INTRATE ~ INFL + PROD, data = fedDataPost)
-sumResPost &lt;- sum(modelPost$residuals^2)</code></pre>
-<pre class="r"><code>s0 = sumRes
+sumResPost &lt;- sum(modelPost$residuals^2)
+
+s0 = sumRes
 s1 = 237
 s2 = sumResPost
 
@@ -380,102 +537,17 @@ b3 = (s1 + s2)/(n-(2*k))
 
 fTest3 = a3/b3
 
-fTest3</code></pre>
-<pre><code>## [1] 55.535</code></pre>
-<pre class="r"><code>pf(q=fTest3, df1=k, df2=(n-(2*k)), lower.tail=FALSE)</code></pre>
-<pre><code>## [1] 0.000000000000000000000052315</code></pre>
-<pre class="r"><code>n2 = nrow(fedDataPost)
+chowForecastPValue &lt;- pf(q=fTest3, df1=k, df2=(n-(2*k)), lower.tail=FALSE)
+
+# Jarque-Bera
+n2 = nrow(fedDataPost)
 n1 = nrow(fedDataPre)
 a4 = (s0 - s1)/n2
 b4 = s1/(n1-k)
 
 fTest4 = a4/b4
-fTest4</code></pre>
-<pre><code>## [1] 8.2116</code></pre>
-<pre class="r"><code>pf(q=fTest4, df1=n2, df2=n1-k, lower.tail=FALSE)</code></pre>
-<pre><code>## [1] 0.000000000000000000000000000000000000000000000000000000022144</code></pre>
+jbPValue &lt;- pf(q=fTest4, df1=n2, df2=n1-k, lower.tail=FALSE)</code></pre>
 </div>
-</div>
-<div id="appendix-a" class="section level3">
-<h3>Appendix A</h3>
-<pre class="r"><code>summary(lm(INTRATE ~ INFL + PROD + UNEMPL + COMMPRI + PCE + PERSINC + HOUST, data = federalRatesData))</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = INTRATE ~ INFL + PROD + UNEMPL + COMMPRI + PCE + 
-##     PERSINC + HOUST, data = federalRatesData)
-## 
-## Residuals:
-##    Min     1Q Median     3Q    Max 
-## -7.407 -1.434 -0.117  1.355  7.739 
-## 
-## Coefficients:
-##             Estimate Std. Error t value             Pr(&gt;|t|)    
-## (Intercept) -0.22116    0.24499   -0.90                0.367    
-## INFL         0.69606    0.06223   11.19 &lt; 0.0000000000000002 ***
-## PROD        -0.05774    0.03990   -1.45                0.148    
-## UNEMPL       0.10248    0.09676    1.06                0.290    
-## COMMPRI     -0.00552    0.00297   -1.86                0.064 .  
-## PCE          0.34438    0.06946    4.96           0.00000091 ***
-## PERSINC      0.24700    0.06059    4.08           0.00005135 ***
-## HOUST       -0.01941    0.00467   -4.16           0.00003683 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Residual standard error: 2.19 on 652 degrees of freedom
-## Multiple R-squared:  0.639,  Adjusted R-squared:  0.635 
-## F-statistic:  165 on 7 and 652 DF,  p-value: &lt;0.0000000000000002</code></pre>
-<p>Remove UNEMPL as it has the highest p-value</p>
-<pre class="r"><code>summary(lm(INTRATE ~ INFL + PROD + COMMPRI + PCE + PERSINC + HOUST, data = federalRatesData))</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = INTRATE ~ INFL + PROD + COMMPRI + PCE + PERSINC + 
-##     HOUST, data = federalRatesData)
-## 
-## Residuals:
-##    Min     1Q Median     3Q    Max 
-## -7.532 -1.498 -0.101  1.388  7.695 
-## 
-## Coefficients:
-##             Estimate Std. Error t value             Pr(&gt;|t|)    
-## (Intercept) -0.29085    0.23602   -1.23                0.218    
-## INFL         0.69331    0.06218   11.15 &lt; 0.0000000000000002 ***
-## PROD        -0.02546    0.02575   -0.99                0.323    
-## COMMPRI     -0.00651    0.00282   -2.31                0.021 *  
-## PCE          0.36856    0.06560    5.62          0.000000029 ***
-## PERSINC      0.25158    0.06044    4.16          0.000035705 ***
-## HOUST       -0.02102    0.00442   -4.76          0.000002390 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Residual standard error: 2.19 on 653 degrees of freedom
-## Multiple R-squared:  0.638,  Adjusted R-squared:  0.635 
-## F-statistic:  192 on 6 and 653 DF,  p-value: &lt;0.0000000000000002</code></pre>
-<p>Remove PROD as it has the highest p-value in the model</p>
-<pre class="r"><code>summary(lm(INTRATE ~ INFL + COMMPRI + PCE + PERSINC + HOUST, data = federalRatesData))</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = INTRATE ~ INFL + COMMPRI + PCE + PERSINC + HOUST, 
-##     data = federalRatesData)
-## 
-## Residuals:
-##    Min     1Q Median     3Q    Max 
-## -7.163 -1.524 -0.112  1.372  7.672 
-## 
-## Coefficients:
-##             Estimate Std. Error t value             Pr(&gt;|t|)    
-## (Intercept) -0.24012    0.23037   -1.04               0.2976    
-## INFL         0.71753    0.05715   12.55 &lt; 0.0000000000000002 ***
-## COMMPRI     -0.00750    0.00264   -2.84               0.0046 ** 
-## PCE          0.34053    0.05916    5.76          0.000000013 ***
-## PERSINC      0.24024    0.05934    4.05          0.000057730 ***
-## HOUST       -0.02053    0.00439   -4.68          0.000003523 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Residual standard error: 2.19 on 654 degrees of freedom
-## Multiple R-squared:  0.637,  Adjusted R-squared:  0.635 
-## F-statistic:  230 on 5 and 654 DF,  p-value: &lt;0.0000000000000002</code></pre>
-<p>library(gap) federalRatesData<span class="math inline">\(Year &lt;- substr(federalRatesData\)</span>OBS, 1, 4) grp &lt;- federalRatesData[federalRatesData$Year &lt; 1980, ] x1 &lt;- grp[, c(“Year”, “INFL”, “PROD”)]; y1 &lt;- data.frame( INTRATE = grp[“Year”,“INTRATE”] ) grp &lt;- federalRatesData[federalRatesData$Year &gt;= 1980, ] x2 &lt;- grp[, c“Year”, “INFL”, “PROD”)]; y2 &lt;- data.frame( INTRATE = grp[“Year”, “INTRATE”] ) chow.test(y1, x1, y2, x2)</p>
 </div>
 </div>
 
