@@ -14,6 +14,6 @@ model1 <- ivreg(GC ~ PG + RI| RI + RPT + RPN + RPU, data = gasData)
 
 # Question 1c
 qchisq(0.05, df=2, lower.tail = FALSE)
-summary(mode1, diagnostics = TRUE)
+summary(model1, diagnostics = TRUE)
 
 #Since Sargon test statistic is less than 5% of chi square distribution, cannot reject null hypothesis

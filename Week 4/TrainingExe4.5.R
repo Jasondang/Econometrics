@@ -11,3 +11,11 @@ model1 <- lm(GPA ~ PARTICIPATION + GENDER, data = gpaData)
 summary(model1)
 
 # Question 1b
+modelStageOne <- lm(PARTICIPATION ~ EMAIL + GENDER, data = gpaData)
+model2SLS <- ivreg(GPA ~ GENDER + PARTICIPATION|EMAIL + GENDER, data = gpaData)
+summary(modelStageOne)
+summary(model2SLS)
+
+
+# Question 1d
+a = 1/(1000-3)

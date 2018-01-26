@@ -1,0 +1,106 @@
+---
+title: "Test Exercise 4"
+author: "Jason"
+date: "25/01/2018"
+output:
+  pdf_document: 
+    latex_engine: xelatex
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
+library(dplyr)
+library(AER)
+
+setwd("~/Documents/2017/Coursera/Econometrics/Week 4")
+wageData <- read.table("Test_4.txt", header=TRUE, sep = ",")
+```
+
+## Questions
+
+A challenging and very relevant economic problem is the measurement of the returns to schooling. In this question we will use the following variables on 3010 US men:
+
+* *logw*: log wage
+* *educ*: number of years of schooling
+* *age*: age of the individual in years
+* *exper*: working experience in years
+* *smsa*: dummy indicating whether the individual lived in a metropolitan area
+* *south*: dummy indicating whether the individual lived in the south
+* *nearc*: dummy indicating whether the individual lived near a 4-year college
+* *dadeduc*: education of the individual’s father (in years)
+* *momeduc*: education of the individual’s mother (in years)
+
+This data is a selection of the data used by D. Card (1995)1
+
+### Question 1
+**Use OLS to estimate the parameters of the model**
+
+$$logw = β1 + β2educ + β3exper + β4exper2 + β5smsa + β6south + ε.$$
+
+**Give an interpretation to the estimated β2 coefficient**
+
+
+```{r}
+wageData$experSquared <- (wageData$exper)^2
+
+olsModel <- lm(logw ~ educ + exper + experSquared + smsa + south, data = wageData)
+olsModel$coefficients
+
+```
+
+The coefficient of $β2$ which is 0.084, indicates that for every additional year of schooling the individual has, the value of log wage is expected to increase by 0.084. 
+
+### Question 2
+**OLS may be inconsistent in this case as educ and exper may be endogenous. Give a reason why this may be the case. Also indicate whether the estimate in part (a) is still useful.**
+
+Variables *educ* and *exper* are likely to be endogenous as they may be influence by other factors such as cost of education and  motivation to study/work. There may also be a correlation between *educ* and *exper* such that longer education time means less experience in the workforce. 
+
+As such, if the variables are not exogenous, they cause OLS to be inconsistent.  
+
+### Question 3 
+**Give a motivation why $age$ and $age^2$ can be used as instruments for $exper$ and $exper^2$.**
+
+$age$ and $age^2$ can be used as instruments as they are both exogneous, have strong correlation with exper and exper2 and have no correlation with \(\epsilon\)
+
+### Question 4
+**Run the first-stage regression for educ for the two-stage least squares estimation of the parameters in the model above when age, age2, nearc, dadeduc, and momeduc are used as additional instruments. What do you conclude about the suitability of these instruments for schooling?**
+
+```{r}
+wageData$ageSquared <- (wageData$age)^2
+model1Stage <- lm(educ ~ age + ageSquared + nearc + daded + momed, data = wageData)
+
+```
+
+Based on the t-statistic of variables $age$, $age^2$, $nearc$, $daded$ and $momed$, they are all correlated with the endogenous variable $educ$ with $daded$ and $momed$ the having the strongest correlation. This makes sense since parents that have strong educational backgrounds will more than likely have a strong influence on the education of their child. As such, they are all suitable to be used as instruments. 
+
+### Question 5
+**Estimate the parameters of the model for log wage using two-stage least squares where you correct for the endogeneity of education and experience. Compare your result to the estimate in part (a).**
+
+```{r}
+model2SLS <- ivreg(logw ~ educ + exper + experSquared + smsa + south | age + ageSquared + nearc + daded + momed + smsa + south, data = wageData )
+model2SLS$coefficients
+```
+
+Comparing this model to (a), variables $educ$, $exper$, $smsa$ still have a positive effect on the log wage value with the positive effect of $educ$ slightly stronger then the previous model. All other variables still have a similar negative effect on log wage. 
+
+
+### Question 6
+**Perform the Sargan test for validity of the instruments. What is your conclusion?**
+
+```{r}
+summary(model2SLS, diagnostics = TRUE)
+qchisq(0.05, df=5, lower.tail = FALSE)
+```
+
+The Sargan test statistic which is 3.702 is lower than the 5% of chi square distribution with 5 degrees of freedom which is 11.07. As such we cannot reject the null hypothesis, and therefore the instruments are valid.  
+
+### Appendix
+
+```{r}
+summary(olsModel)
+summary(model1Stage)
+summary(model2SLS)
+```
+
