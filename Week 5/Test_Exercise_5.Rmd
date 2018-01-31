@@ -1,0 +1,15 @@
+---
+title: "Test Exercise 5"
+author: "Jason"
+date: "31/01/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
+library(dplyr)
+library(AER)
+```
+
+
