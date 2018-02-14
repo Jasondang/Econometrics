@@ -1,0 +1,108 @@
+---
+title: "Test Exercise 6"
+author: "Jason"
+date: "13/02/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
+library(dplyr)
+library(AER)
+library(dynlm)
+library(egcm)
+library(ecm)
+library(ggplot2)
+library(forecast)
+library(tseries)
+
+setwd("~/Documents/2017/Coursera/Econometrics/Week 6")
+testData <- read.table("TestExer 6-CPI-round1.csv", header=TRUE, sep = ",")
+#testData$YEAR <- substr(testData$YYYY.MM, 1, 4)
+```
+
+## Questions
+This test exercise uses data that are available in the data file TestExer6. The question of interest is to model monthly inflation in the Euro area and to investigate whether inflation in the United States of America has predictive power for inflation in the Euro area. Monthly data on the consumer price index (CPI) for the Euro area and the USA are available from January 2000 until December 2011. The data for January 2000 until December 2010 are used for specification and estimation of models, and the data for 2011 are left out for forecast evaluation purposes.
+
+### Question (a)
+*Make time series plots of the CPI of the Euro area and the USA, and also of their logarithm log(CPI) and of the two monthly inflation series DP = ∆log(CPI). What conclusions do you draw from these plots?*
+
+```{r}
+ggplot(testData) + geom_line(aes(TREND, CPI_EUR, colour='EUR')) + geom_line(aes(TREND, CPI_USA, colour='USA')) + ylab("Consumer Price Index")
+```
+
+It can be seen from the graph above that there is a positive trend, where the consumer price index has increased over time, with the exception of some noticable drops. It can also be seen that the USA CPI and Euro CPI are correlated with each other and the USA CPI has always been greater then the EUR CPI value. 
+
+```{r}
+ggplot(testData) + geom_line(aes(TREND, LOGPEUR, colour='EUR')) + geom_line(aes(TREND, LOGPUSA, colour='USA')) + ylab("Log of Consumer Price Index")
+```
+
+From the graph above, it seems that the second graph exhibits the same charateristics as the first graph. 
+
+```{r}
+ggplot(testData) + geom_line(aes(TREND, DPEUR, colour='EUR')) + geom_line(aes(TREND, DPUSA, colour='USA')) + ylab("Monthly Inflation Rate")
+```
+
+From the graph above, it seems that the inflation rate for both USA and EUR are stationary and correlated. It also looks like the USA inflation rate is slightly more volatile than the EUR inflation rate. 
+
+
+
+### Question (b)
+*Perform the Augmented Dickey-Fuller (ADF) test for the two log(CPI) series. In the ADF test equation, include a constant (α), a deterministic trend term (βt), three lags of DP = ∆log(CPI) and, of course, the variable of interest log(CPIt−1). Report the coefficient of log(CPIt−1) and its standard error and t-value, and draw your conclusion.*
+
+```{r}
+adfEURCPI <- dynlm(DPEUR ~ lag(TREND,0) + lag(DPEUR,1) + lag(DPEUR,2) + lag(DPEUR,3) + lag(LOGPEUR,1), data = testData)
+summary(adfEURCPI)
+
+adfUSACPI <- dynlm(DPUSA ~ lag(TREND,0) + lag(DPUSA,1) + lag(DPUSA,2) + lag(DPUSA,3) + lag(LOGPUSA,1), data = testData)
+summary(adfUSACPI)
+```
+
+Since t-value for the log(CPI)  (-2.826 for EUR and -2.735 for USA) are greater than the critical value which is -3.5, log(CPI) are not stationary. 
+
+### Question (c)
+As the two series of log(CPI) are not cointegrated (you need not check this), we continue by modelling the monthly inflation series DPEUR = ∆log(CPIEUR) for the Euro area. Determine the sample autocorrelations and the sample partial autocorrelations of this series to motivate the use of the following AR model: DPEURt = α+β1DPEURt−6 +β2DPEURt−12 +εt. Estimate the parameters of this model (sample Jan 2000 - Dec 2010).
+
+```{r}
+arModel <- ar.ols(testData$DPEUR[2:131], order.max = 12)
+arModel
+```
+
+
+### Question (d)
+Extend the AR model of part (c) by adding lagged values of monthly inflation in the USA at lags 1, 6, and 12. Check that the coefficient at lag 6 is not significant, and estimate the ADL model DPEURt = α + β1DPEURt−6 + β2DPEURt−12 + γ1DPUSAt−1 + γ2DPUSAt−12 + εt (sample Jan 2000 - Dec 2010).
+
+```{r}
+testData2 <- testData[2:132,]
+modelADL <- dynlm(DPEUR ~ lag(DPEUR, 6) + lag(DPEUR, 12) + lag(DPUSA, 1) + lag(DPUSA, 6) + lag(DPUSA, 12), data = testData2)
+summary(modelADL)
+
+```
+
+```{r}
+modelADL2 <- dynlm(DPEUR ~ lag(DPEUR, 6) + lag(DPEUR, 12) + lag(DPUSA, 1) + lag(DPUSA, 12), data = testData2)
+summary(modelADL2)
+```
+
+
+### Question (e)
+Use the models of parts (c) and (d) to make two series of 12 monthly inflation forecasts for 2011. At each month, you should use the data that are then available, for example, to forecast inflation for September 2011 you can use the data up to and including August 2011. However, do not re-estimate the model and use the coefficients as obtained in parts (c) and (d). For each of the two forecast series, compute the values of the root mean squared error (RMSE), mean absolute error (MAE), and the sum of the forecast errors (SUM). Finally, give your interpretation of the outcomes.
+
+```{r}
+tsDPEUR <- ts(testData$DPEUR, start =2)
+tsDPUSA <- ts(testData$DPUSA, start =2)
+modelADL3 <- dynlm(tsDPEUR ~ L(tsDPEUR, 6) + L(tsDPEUR, 12) + L(tsDPUSA, 1) + L(tsDPUSA, 6) + L(tsDPUSA, 12))
+summary(modelADL3)
+
+tail(predict(modelADL3, n.ahead=12),12)
+
+adfPre <- predict(arima(testData2$DPEUR, order=c(12,0,0)), n.ahead = 12)
+
+plot(x,tail(testData$DPEUR,12), type = 'l', col="green") 
+lines(x,adfPre$pred, col="red")
+lines(x,tail(predict(modelADL3, n.ahead=12),12), col="blue")
+
+
+```
+

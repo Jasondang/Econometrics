@@ -2,7 +2,10 @@
 title: "Test Exercise 5"
 author: "Jason"
 date: "31/01/2018"
-output: html_document
+output:
+  pdf_document: 
+    latex_engine: xelatex
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -11,5 +14,60 @@ rm(list = ls())
 library(dplyr)
 library(AER)
 ```
+
+## Questions
+Consider again the application in lecture 5.5, where we have analyzed response to a direct mailing using the following logit specification
+
+$$Pr[resp_i=1] = \frac{exp(\beta_0 + \beta_1male_i + \beta_2active_i + \beta_3age_i + \beta_4(age_i/10)^2)}{1 + exp(\beta_0 + \beta_1male_i + \beta_2active_i + \beta_3age_i + \beta_4(age_i/10)^2)} $$
+
+for i = 1, . . . , 925. The maximum likelihood estimates of the parameters are given by
+
+| Variable  | Coefficient | Std. Error  | t-value | p-value |
+|-----------|-------------|-------------|---------|---------|
+| Intercept | -2.488      | 0.890       | -2.796  | 0.005   |
+| Male      | 0.954       | 0.158       | 6.029   | 0.000   |
+| Active    | 0.914       | 0.185       | 4.945   | 0.000   |
+| Age       | 0.070       | 0.036       | 1.964   | 0.050   |
+| (Age/10)^2| -0.069      | 0.034       | -2.015  | 0.044   |
+
+
+### Question (a)
+*Show that:*
+
+*$$\frac{∂ Pr[resp_i = 1]}{∂ age_i} + \frac{∂ Pr[resp_i = 0]}{∂ age_i} = 0 $$*
+
+### Answer
+
+$$ Pr[resp_i = 0] = 1 - Pr[resp_i = 1]  $$
+Therefore:
+
+$$ \frac{∂ Pr[resp_i = 1]}{∂ age_i} + \frac{∂ }{∂ age_i} - \frac{∂ Pr[resp_i = 1]}{∂ age_i} = 0 $$
+Using the following rule
+$$ \frac{∂ }{∂ age_i} = 0 $$
+We get the following equation which gives us the result we want. 
+$$ \frac{∂ Pr[resp_i = 1]}{∂ age_i}  - \frac{∂ Pr[resp_i = 1]}{∂ age_i} = 0 $$
+
+### Question (b)
+*Assume that you recode the dependent variable as follows: $resp_i^{new} =−resp_i + 1$. Hence, positive response is now defined to be equal to zero and negative response to be equal to 1. Use the odds ratio to show that this transformation implies that the sign of all parameters change.*
+
+Odds Ratio equation:
+
+$$ \frac{Pr[resp_i = 1]}{Pr[resp_i = 0]} = exp(\beta_0 + \beta_1male_i + \beta_2active_i + \beta_3age_i + \beta_4(age_i/10)^2)$$
+$$\frac{Pr[resp_i = 1]}{Pr[resp_i = 0]} = \frac{Pr[resp_{i}^{new} = 0]}{Pr[resp_{i}^{new} = 1]} $$ 
+Therefore:
+$$\frac{Pr[resp_i = 0]}{Pr[resp_i = 1]} = \frac{Pr[resp_{i}^{new} = 1]}{Pr[resp_{i}^{new} = 0]} = \frac{1}{exp(\beta_0 + \beta_1male_i + \beta_2active_i + \beta_3age_i + \beta_4(age_i/10)^2)}$$ 
+
+$$\frac{1}{exp(\beta_0 + \beta_1male_i + \beta_2active_i + \beta_3age_i + \beta_4(age_i/10)^2)} = exp(-\beta_0 - \beta_1male_i - \beta_2active_i - \beta_3age_i - \beta_4(age_i/10)^2)$$
+Using the odds ratio it can be seen that the sign of all the parameters change when the positive response is now defined to be equal to zero and negative response to be equal to 1.
+
+
+### Question (c)
+*Consider again the odds ratio positive response versus negative response:*
+
+$$ \frac{Pr[resp_i = 1]}{Pr[resp_i = 0]} = exp(\beta_0 + \beta_1male_i + \beta_2active_i + \beta_3age_i + \beta_4(age_i/10)^2)$$
+
+*During lecture 5.5 you have seen that this odds ratio obtains its maximum value for age equal to 50 years for males as well as females. Suppose now that you want to extend the logit model and allow that this age value is possibly different for males than for females. Discuss how you can extend the logit specification.*
+
+We can split the dataset into two, with one dataset containing only values where the variable male is 1 and another dataset where the male variable is equal to 0. Then calculate the logit specification for each of the dataset seperatly. The male variable would be omitted from the logit specification for both datasets. 
 
 
