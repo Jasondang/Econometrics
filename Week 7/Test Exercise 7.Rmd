@@ -1,0 +1,349 @@
+---
+title: "Test Exercise 7"
+author: "Jason"
+date: "19/02/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
+library(dplyr)
+library(AER)
+library(dynlm)
+library(egcm)
+library(ecm)
+library(ggplot2)
+library(forecast)
+library(tseries)
+
+setwd("~/Documents/2017/Coursera/Econometrics/Week 7")
+houseData <- read.table("testExercise7.txt", header=TRUE, sep = "\t")
+
+```
+
+## Background
+
+This project is of an applied nature and uses data that are available in the data file Capstone-HousePrices. The
+source of these data is Anglin and Gencay, “Semiparametric Estimation of a Hedonic Price Function”(Journal of
+Applied Econometrics 11, 1996, pages 633-648). We consider the modeling and prediction of house prices. Data
+are available for 546 observations of the following variables:
+
+* sell: Sale price of the house
+* lot: Lot size of the property in square feet
+* bdms: Number of bedrooms
+* fb: Number of full bathrooms
+* sty: Number of stories excluding basement
+* drv: Dummy that is 1 if the house has a driveway and 0 otherwise
+* rec: Dummy that is 1 if the house has a recreational room and 0 otherwise
+* ffin: Dummy that is 1 if the house has a full finished basement and 0 otherwise
+* ghw: Dummy that is 1 if the house uses gas for hot water heating and 0 otherwise
+* ca: Dummy that is 1 if there is central air conditioning and 0 otherwise
+* gar: Number of covered garage places
+* reg: Dummy that is 1 if the house is located in a preferred neighborhood of the city and 0 otherwise
+* obs: Observation number, needed in part (h)
+
+
+## Questions
+**(a) Consider a linear model where the sale price of a house is the dependent variable and the explanatory variables are the other variables given above. Perform a test for linearity. What do you conclude based on the test result?**
+
+```{r}
+linearModel <- lm(sell ~ lot + bdms + fb + sty + drv + rec + ffin + ghw + ca + gar + reg, data = houseData)
+summary(linearModel)
+```
+
+We use the RESET Test to test for linearity. 
+
+```{r}
+resetStat <- resettest(linearModel, power = 2, type = "fitted", data = houseData)$statistic
+resetPValue <- resettest(linearModel, power = 2, type = "fitted", data = houseData)$p.value
+
+resetStat
+resetPValue
+```
+
+Since the p-value is less than the critical value of 5%, we reject the null hypothesis that the model is correctly specified as a linear model.
+
+***
+
+**(b) Now consider a linear model where the log of the sale price of the house is the dependent variable and the explanatory variables are as before. Perform again the test for linearity. What do you conclude now?**
+
+```{r}
+houseData$logSell <- log(houseData$sell)
+linearModel2 <- lm(logSell ~ lot + bdms + fb + sty + drv + rec + ffin + ghw + ca + gar + reg, data = houseData)
+summary(linearModel2)
+```
+
+
+```{r}
+resetStat2 <- resettest(linearModel2, power = 2, type = "fitted", data = houseData)$statistic
+resetPValue2 <- resettest(linearModel2, power = 2, type = "fitted", data = houseData)$p.value
+
+resetStat2
+resetPValue2
+```
+
+
+Since the p-value is greater than the critical value of 5%, we cannot reject the null hypothesis that the model is correctly specified as a linear model.
+
+***
+
+**(c) Continue with the linear model from question (b). Estimate a model that includes both the lot size variable and its logarithm, as well as all other explanatory variables without transformation. What is your conclusion,should we include lot size itself or its logarithm?**
+
+```{r}
+houseData$logLot <- log(houseData$lot)
+linearModel3 <- lm(logSell ~ lot + logLot + bdms + fb + sty + drv + rec + ffin + ghw + ca + gar + reg, data = houseData)
+summary(linearModel3)
+```
+
+```{r}
+resetStat3 <- resettest(linearModel3, power = 2, type = "fitted", data = houseData)$statistic
+resetPValue3 <- resettest(linearModel3, power = 2, type = "fitted", data = houseData)$p.value
+
+resetStat3
+resetPValue3
+```
+
+***
+
+**(d) Consider now a model where the log of the sale price of the house is the dependent variable and the explanatory variables are the log transformation of lot size, with all other explanatory variables as before. We now consider interaction effects of the log lot size with the other variables. Construct these interaction variables. How many are individually significant?**
+
+```{r}
+interactionModel <- lm(logSell ~ logLot + bdms + fb + sty + drv + rec + ffin + ghw + ca + gar + reg
+                                  + (logLot*bdms) + (logLot*fb)
+                                  + (logLot*sty) + (logLot*drv) 
+                                  + (logLot*rec) + (logLot*ffin) 
+                                  + (logLot*ghw) + (logLot*ca) 
+                                  + (logLot*gar) + (logLot*reg), data = houseData)
+summary(interactionModel)
+```
+
+```{r}
+resetStat4 <- resettest(interactionModel, power = 2, type = "fitted", data = houseData)$statistic
+resetPValue4 <- resettest(interactionModel, power = 2, type = "fitted", data = houseData)$p.value
+
+resetStat4
+resetPValue4
+```
+
+***
+
+**(e) Perform an F-test for the joint significance of the interaction effects from question (d).**
+
+```{r}
+unrestrictedModel <- lm(logSell ~ logLot + bdms + fb + sty + drv + rec + ffin + ghw + ca + gar + reg
+                                  + (logLot*bdms) + (logLot*fb)
+                                  + (logLot*sty) + (logLot*drv) 
+                                  + (logLot*rec) + (logLot*ffin) 
+                                  + (logLot*ghw) + (logLot*ca) 
+                                  + (logLot*gar) + (logLot*reg), data = houseData)
+
+restrictedModel <- lm(logSell ~ logLot + bdms + fb + sty + drv + rec + ffin + ghw + ca + gar + reg
+                                  + (logLot*drv) + (logLot*rec), data = houseData)
+
+unrestrictedR <- summary(unrestrictedModel)$r.squared
+restrictedR <- summary(restrictedModel)$r.squared
+```
+
+Number of regressors excluded:
+```{r}
+g <- 10
+```
+
+Number of observations
+```{r}
+n <- 546
+```
+
+Number of regressors in unrestricted model
+```{r}
+k <- 22
+```
+
+
+```{r}
+fValue <- (((unrestrictedR) - (restrictedR))/g)/((1-(unrestrictedR))/(n-k))
+fValue
+
+pValue <- pf(fValue, g, n - k)
+pValue
+```
+
+***
+
+**(f) Now perform model specification on the interaction variables using the general-to-specific approach. (Only eliminate the interaction effects.)**
+
+Variable  | Model 1 p-value | Model 2 p-value | Model 3 p-value | Model 4 p-value | Model 5 p-value | Model 6 p-value | Model 7 p-value | Model 8 p-value | Model 9 p-value |
+----------|-----------------|-----------------|-----------------|-----------------|-----------------|-----------------|-----------------|-----------------|-----------------|
+Intercept | 5.09e-16        | 4.37e-16        | < 2e-16         | < 2e-16         | < 2e-16         | < 2e-16         | < 2e-16         | < 2e-16         | < 2e-16         |
+logLot    | 0.2345          | 0.2341          | 0.1304          | 0.1055          | 0.0878          | 0.0818          | 0.0802          | 0.0117          | 0.02053         |
+bdms      | 0.9535          | 0.9523          | 0.0125          | 0.0125          | 0.0123          | 0.0155          | 0.0153          | 0.0128          | 0.00686         |
+fb        | 0.3911          | 0.3909          | 0.3281          | 0.3217          | 0.3286          | 0.3235          | 0.3753          | 6.30e-15        | 9.62e-15        |
+sty       | 0.1150          | 0.1086          | 0.0927          | 0.0873          | 0.0857          | 0.0977          | 0.1005          | 0.1669          | 1.56e-12        |
+drv       | 0.0418          | 0.0357          | 0.0343          | 0.0354          | 0.0375          | 0.0380          | 0.0642          | 0.0607          | 0.07395         |
+rec       | 0.0110          | 0.0108          | 0.0106          | 0.0105          | 0.0101          | 0.0134          | 0.0160          | 0.0190          | 0.01665         |
+ffin      | 0.9430          | 0.9353          | 0.9302          | 3.47e-06        | 2.44e-06        | 2.55e-06        | 2.92e-06        | 4.58e-06        | 2.46e-06        |
+ghw       | 0.5754          | 0.5755          | 0.5765          | 0.5648          | 4.83e-05        | 6.06e-05        | 4.55e-05        | 4.21e-05        | 2.83e-05        |
+ca        | 0.4930          | 0.4929          | 0.4933          | 0.4709          | 0.4891          | 1.87e-14        | 2.02e-14        | 2.64e-14        | 3.48e-14        |
+gar       | 0.1208          | 0.1194          | 0.1186          | 0.1179          | 0.1215          | 0.1759          | 3.13e-05        | 3.79e-05        | 4.65e-05        |
+reg       | 0.8051          | 1.94e-08        | 1.89e-08        | 1.24e-08        | 1.51e-08        | 8.69e-09        | 1.51e-08        | 1.06e-08        | 7.24e-09        |
+(logLot*bdms) | 0.9573      | 0.9582          |                 |                 |                 |                 |                 |                 |                 |
+(logLot*fb)   | 0.2166      | 0.2161          | 0.1607          | 0.1570          | 0.1606          | 0.1569          | 0.1872          |                 |                 |
+(logLot*sty)  | 0.1977      | 0.1900          | 0.1706          | 0.1613          | 0.1585          | 0.1797          | 0.1837          | 0.2906          |                 |
+(logLot*drv)  | 0.0288      | 0.0243          | 0.0232          | 0.0240          | 0.0254          | 0.0258          | 0.0441          | 0.0412          | 0.05024         |
+(logLot*rec)  | 0.0139      | 0.0137          | 0.0135          | 0.0134          | 0.0129          | 0.0170          | 0.0203          | 0.0241          | 0.02103         |
+(logLot*ffin) | 0.7635      | 0.7495          | 0.7434          |                 |                 |                 |                 |                 |                 |
+(logLot*ghw)  | 0.4483      | 0.4479          | 0.4486          | 0.4370          |                 |                 |                 |                 |                 |
+(logLot*ca)   | 0.3052      | 0.3047          | 0.3049          | 0.2871          | 0.3017          |                 |                 |                 |                 |
+(logLot*gar)  | 0.1706      | 0.1691          | 0.1682          | 0.1674          | 0.1718          | 0.2448          |                 |                 |                 |
+(logLot*reg)  | 0.9784      |                 |                 |                 |                 |                 |                 |                 |                 |
+
+```{r}
+finalModel <-lm(logSell ~ logLot + bdms + fb + sty + drv + rec + ffin + ghw + ca + gar + reg
+                                  + (logLot*drv) 
+                                  + (logLot*rec), data = houseData))
+
+summary(finalModel)
+
+```
+
+
+
+**(g) One may argue that some of the explanatory variables are endogenous and that there may be omitted variables. For example, the ‘condition’ of the house in terms of how it is maintained is not a variable (and difficult to measure) but will affect the house price. It will also affect, or be reflected in, some of the other variables, such as whether the house has an air conditioning (which is mostly in newer houses). If the condition of the house is missing, will the effect of air conditioning on the (log of the) sale price be over- or underestimated? (For this question no computer calculations are required.)**
+
+If the condition of the house variable is missing, the effect of air conditioning on the log of the sale price will be overestimated as they would most likely be postively correlated with the missing/unaccounted variables such as condition or age of the house. Becasue of this the air conditioning variable will include some of the postive effects that the missing variables would have on the log of the sale price.
+
+
+**(h) Finally we analyze the predictive ability of the model. Consider again the model where the log of the sale price of the house is the dependent variable and the explanatory variables are the log transformation of lot size, with all other explanatory variables in their original form (and no interaction effects). Estimate the parameters of the model using the first 400 observations. Make predictions on the log of the price and calculate the MAE for the other 146 observations. How good is the predictive power of the model (relative to the variability in the log of the price)?**
+
+```{r }
+trainData <- houseData[houseData$obs <= 400, ]
+testData <- houseData[houseData$obs > 400, ]
+
+modelPredict <- lm(logSell ~ lot + bdms + fb + sty + drv + rec + ffin + ghw + ca + gar + reg, data = trainData)
+
+predictedValue <- as.data.frame(predict(modelPredict, newdata = testData))
+predictedValue$obs <- 401:546
+colnames(predictedValue) = c('predictedValue','obs')
+
+```
+
+```{r}
+ggplot(testData) + geom_line(aes(obs, logSell, colour='Actual')) + geom_line(aes(predictedValue$obs, predictedValue$predictedValue, colour='Predicted')) + ylab("Log(sell)")
+
+```
+
+```{r}
+mean(trainData$logSell)
+sd(trainData$logSell)
+
+
+mae <- function(error)
+{
+    mean(abs(error))
+}
+
+actual <- testData$logSell
+predicted <- predictedValue$predictedValue
+
+error <- actual - predicted
+
+maeModel <- mae(error)
+```
+
+
+### Appendix
+
+#### Question (f)
+
+Model 1
+```{r}
+summary(lm(logSell ~ logLot + bdms + fb + sty + drv + rec + ffin + ghw + ca + gar + reg
+                                  + (logLot*bdms) + (logLot*fb)
+                                  + (logLot*sty) + (logLot*drv) 
+                                  + (logLot*rec) + (logLot*ffin) 
+                                  + (logLot*ghw) + (logLot*ca) 
+                                  + (logLot*gar) + (logLot*reg), data = houseData))
+```
+
+
+Model 2
+```{r}
+summary(lm(logSell ~ logLot + bdms + fb + sty + drv + rec + ffin + ghw + ca + gar + reg
+                                  + (logLot*bdms) + (logLot*fb)
+                                  + (logLot*sty) + (logLot*drv) 
+                                  + (logLot*rec) + (logLot*ffin) 
+                                  + (logLot*ghw) + (logLot*ca) 
+                                  + (logLot*gar), data = houseData))
+```
+
+Model 3
+```{r}
+summary(lm(logSell ~ logLot + bdms + fb + sty + drv + rec + ffin + ghw + ca + gar + reg
+                                  + (logLot*fb)
+                                  + (logLot*sty) + (logLot*drv) 
+                                  + (logLot*rec) + (logLot*ffin) 
+                                  + (logLot*ghw) + (logLot*ca) 
+                                  + (logLot*gar), data = houseData))
+```
+
+Model 4
+```{r}
+summary(lm(logSell ~ logLot + bdms + fb + sty + drv + rec + ffin + ghw + ca + gar + reg
+                                  + (logLot*fb)
+                                  + (logLot*sty) + (logLot*drv) 
+                                  + (logLot*rec)
+                                  + (logLot*ghw) + (logLot*ca) 
+                                  + (logLot*gar), data = houseData))
+```
+
+Model 5
+```{r}
+summary(lm(logSell ~ logLot + bdms + fb + sty + drv + rec + ffin + ghw + ca + gar + reg
+                                  + (logLot*fb)
+                                  + (logLot*sty) + (logLot*drv) 
+                                  + (logLot*rec)
+                                  + (logLot*ca) 
+                                  + (logLot*gar), data = houseData))
+```
+
+Model 6
+```{r}
+summary(lm(logSell ~ logLot + bdms + fb + sty + drv + rec + ffin + ghw + ca + gar + reg
+                                  + (logLot*fb)
+                                  + (logLot*sty) + (logLot*drv) 
+                                  + (logLot*rec)
+                                  + (logLot*gar), data = houseData))
+```
+
+Model 7
+```{r}
+summary(lm(logSell ~ logLot + bdms + fb + sty + drv + rec + ffin + ghw + ca + gar + reg
+                                  + (logLot*fb)
+                                  + (logLot*sty) + (logLot*drv) 
+                                  + (logLot*rec), data = houseData))
+```
+
+Model 8
+```{r}
+summary(lm(logSell ~ logLot + bdms + fb + sty + drv + rec + ffin + ghw + ca + gar + reg
+                                  + (logLot*sty) + (logLot*drv) 
+                                  + (logLot*rec), data = houseData))
+```
+
+Model 9
+```{r}
+summary(lm(logSell ~ logLot + bdms + fb + sty + drv + rec + ffin + ghw + ca + gar + reg
+                                  + (logLot*drv) 
+                                  + (logLot*rec), data = houseData))
+```
+
+
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
